@@ -61,8 +61,11 @@ public class RNZendeskChatModule extends ReactContextBaseJavaModule {
             builder.phoneNumber(options.getString("phone"));
         }
 
-        VisitorInfo visitorData = builder.build();
+        if (options.hasKey("note")) {
+            builder.note(options.getString("note"));
+        }
 
+        VisitorInfo visitorData = builder.build();
         ZopimChat.setVisitorInfo(visitorData);
     }
 
@@ -84,6 +87,13 @@ public class RNZendeskChatModule extends ReactContextBaseJavaModule {
     public void unreadMessagesCount(Promise promise) {
         // Not sure how to get the unread count yet...
         promise.resolve(0);
+    }
+
+    @ReactMethod
+    public void setNote(String note) {
+        // setNote not implemented in Android because of limitations
+        // of the Chat SDK. Use note in `startChat` instead (but note
+        // that it will only append notes, not overwrite them).
     }
 
     private ChatItemsObserver chatItemsObserver = new ChatItemsObserver(mReactContext) {

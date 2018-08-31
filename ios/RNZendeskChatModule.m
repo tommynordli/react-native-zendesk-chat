@@ -8,6 +8,7 @@
 
 #import "RNZendeskChatModule.h"
 #import <ZDCChat/ZDCChat.h>
+#import <ZDCChatAPI/ZDCChatAPI.h>
 
 @implementation RNZendeskChatModule
 {
@@ -106,14 +107,18 @@ RCT_EXPORT_METHOD(setVisitorInfo:(NSDictionary *)options) {
     if (options[@"phone"]) {
       visitor.phone = options[@"phone"];
     }
+    if (options[@"note"]) {
+      [visitor addNote:options[@"note"]];
+    }
+
     visitor.shouldPersist = options[@"shouldPersist"] || NO;
   }];
 }
 
 RCT_EXPORT_METHOD(startChat:(NSDictionary *)options) {
-  [self setVisitorInfo:options];
-
   dispatch_sync(dispatch_get_main_queue(), ^{
+    [self setVisitorInfo:options];
+
     [ZDCChat startChat:^(ZDCConfig *config) {
       if (options[@"department"]) {
         config.department = options[@"department"];
@@ -144,6 +149,12 @@ RCT_REMAP_METHOD(unreadMessagesCount, unreadMessagesCountWithResolver:(RCTPromis
     count = 0;
   }
   resolve([NSNumber numberWithInteger:count]);
+}
+
+RCT_EXPORT_METHOD(setNote:(NSString*) note) {
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    [[[ZDCChat instance] api] setNote:note];
+  });
 }
 
 @end
