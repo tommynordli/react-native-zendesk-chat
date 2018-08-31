@@ -34,7 +34,9 @@ RCT_EXPORT_MODULE(RNZendeskChatModule);
 -(void)stopObserving
 {
   hasListeners = NO;
-  [[ZDCChatAPI instance] removeObserverForChatLogEvents:self];
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    [[ZDCChatAPI instance] removeObserverForChatLogEvents:self];
+  });
 }
 
 -(void)chatEvent
@@ -86,13 +88,13 @@ RCT_EXPORT_MODULE(RNZendeskChatModule);
   }
 
   [self sendEventWithName:@"ChatLogEvent" body:@{
-    @"eventId": event.eventId,
-    @"timestamp": event.timestamp,
-    @"nickname": event.nickname,
-    @"displayName": event.displayName,
-    @"message": event.message,
-    @"type": eventType,
-    @"verified": @(event.verified)
+                                                 @"eventId": event.eventId != nil ? event.eventId : @"",
+                                                 @"timestamp": event.timestamp != nil ? event.timestamp : 0,
+                                                 @"nickname": event.nickname != nil ? event.nickname : @"",
+                                                 @"displayName": event.displayName != nil ? event.displayName : @"",
+                                                 @"message": event.message != nil ? event.message : @"",
+                                                 @"type": eventType,
+                                                 @"verified": @(event.verified)
   }];
 }
 
@@ -144,11 +146,13 @@ RCT_EXPORT_METHOD(startChat:(NSDictionary *)options) {
 
 RCT_REMAP_METHOD(unreadMessagesCount, unreadMessagesCountWithResolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
-  NSInteger count = [[ZDCChat instance] unreadMessagesCount];
-  if (count < 0) {
-    count = 0;
-  }
-  resolve([NSNumber numberWithInteger:count]);
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    NSInteger count = [[ZDCChat instance] unreadMessagesCount];
+    if (count < 0) {
+      count = 0;
+    }
+    resolve([NSNumber numberWithInteger:count]);
+  });
 }
 
 RCT_EXPORT_METHOD(setNote:(NSString*) note) {
